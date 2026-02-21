@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RAG Document Q&A Agent — Adithya Reddy</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #F8F7F3; --white: #FFFFFF; --navy: #1A1F36; --gold: #B8965A;
+    --border: #DDD9CF; --muted: #7A7A7A; --text: #2C2C2C; --tag-bg: #EDE9DF;
+    --success: #2D6A4F; --success-bg: #EAF4EF;
+  }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Outfit',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+  /* TOP BAR */
+  .topbar {
+    background:var(--white); border-bottom:1px solid var(--border);
+    padding:0 2rem; height:56px;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .topbar-back {
+    font-size:0.8rem; color:var(--muted); text-decoration:none;
+    display:flex; align-items:center; gap:0.4rem;
+    transition:color 0.2s;
+  }
+  .topbar-back:hover { color:var(--navy); }
+  .topbar-title {
+    font-family:'Cormorant Garamond',serif;
+    font-size:1.1rem; font-weight:600; color:var(--navy);
+  }
+  .topbar-tag {
+    background:var(--tag-bg); color:var(--gold);
+    font-size:0.7rem; font-weight:600; letter-spacing:0.1em;
+    text-transform:uppercase; padding:0.3rem 0.8rem; border-radius:100px;
+  }
+
+  /* LAYOUT */
+  .layout { display:grid; grid-template-columns:340px 1fr; height:calc(100vh - 56px); }
+
+  /* SIDEBAR */
+  .sidebar {
+    background:var(--white); border-right:1px solid var(--border);
+    padding:1.5rem; display:flex; flex-direction:column; gap:1.5rem; overflow-y:auto;
+  }
+  .sidebar-section-label {
+    font-size:0.68rem; font-weight:600; letter-spacing:0.15em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:0.75rem;
+  }
+
+  /* UPLOAD ZONE */
+  .upload-zone {
+    border:2px dashed var(--border); border-radius:10px;
+    padding:2rem 1rem; text-align:center; cursor:pointer;
+    transition:border-color 0.2s, background 0.2s;
+  }
+  .upload-zone:hover { border-color:var(--gold); background:rgba(184,150,90,0.03); }
+  .upload-icon { font-size:2rem; margin-bottom:0.5rem; }
+  .upload-title { font-size:0.85rem; font-weight:600; color:var(--navy); margin-bottom:0.25rem; }
+  .upload-sub { font-size:0.75rem; color:var(--muted); }
+
+  /* UPLOADED FILE */
+  .file-item {
+    border:1px solid var(--border); border-radius:8px; padding:0.75rem 1rem;
+    display:flex; align-items:center; gap:0.75rem; cursor:pointer;
+    transition:border-color 0.2s;
+  }
+  .file-item.active { border-color:var(--gold); background:rgba(184,150,90,0.04); }
+  .file-item:hover { border-color:var(--gold); }
+  .file-icon { font-size:1.4rem; }
+  .file-name { font-size:0.82rem; font-weight:500; color:var(--navy); }
+  .file-meta { font-size:0.72rem; color:var(--muted); }
+  .file-status {
+    margin-left:auto; font-size:0.68rem; font-weight:600;
+    color:var(--success); background:var(--success-bg);
+    padding:0.2rem 0.5rem; border-radius:100px;
+  }
+
+  /* CHUNKS PREVIEW */
+  .chunk-preview {
+    background:var(--bg); border-radius:8px; padding:0.75rem;
+    font-family:'JetBrains Mono',monospace; font-size:0.7rem;
+    color:var(--muted); line-height:1.5; max-height:120px; overflow:hidden;
+    position:relative;
+  }
+  .chunk-preview::after {
+    content:''; position:absolute; bottom:0; left:0; right:0; height:30px;
+    background:linear-gradient(transparent, var(--bg));
+  }
+
+  /* SETTINGS */
+  .setting-row { display:flex; flex-direction:column; gap:0.3rem; margin-bottom:0.75rem; }
+  .setting-label { font-size:0.75rem; font-weight:500; color:var(--navy); }
+  .setting-select, .setting-input {
+    border:1px solid var(--border); border-radius:6px;
+    padding:0.5rem 0.75rem; font-size:0.8rem;
+    font-family:'Outfit',sans-serif; color:var(--text);
+    background:var(--white); outline:none;
+  }
+  .setting-select:focus, .setting-input:focus { border-color:var(--gold); }
+
+  /* MAIN CHAT */
+  .main { display:flex; flex-direction:column; overflow:hidden; }
+
+  /* CHAT MESSAGES */
+  .chat-area { flex:1; overflow-y:auto; padding:2rem; display:flex; flex-direction:column; gap:1.5rem; }
+
+  .msg { display:flex; gap:1rem; max-width:800px; }
+  .msg.user { flex-direction:row-reverse; align-self:flex-end; }
+
+  .msg-avatar {
+    width:34px; height:34px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:0.9rem; flex-shrink:0;
+    background:var(--tag-bg); color:var(--navy);
+  }
+  .msg.user .msg-avatar { background:var(--navy); color:white; }
+
+  .msg-bubble {
+    background:var(--white); border:1px solid var(--border);
+    border-radius:12px; padding:1rem 1.25rem;
+    font-size:0.88rem; line-height:1.7; color:var(--text);
+    max-width:600px;
+  }
+  .msg.user .msg-bubble { background:var(--navy); color:white; border-color:var(--navy); }
+
+  /* SOURCE CITATIONS */
+  .sources {
+    margin-top:0.75rem; padding-top:0.75rem;
+    border-top:1px solid var(--border);
+  }
+  .sources-label {
+    font-size:0.68rem; font-weight:600; letter-spacing:0.1em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:0.5rem;
+  }
+  .source-chip {
+    display:inline-flex; align-items:center; gap:0.35rem;
+    background:var(--tag-bg); border-radius:6px;
+    padding:0.3rem 0.6rem; margin:0.2rem;
+    font-size:0.72rem; font-weight:500; color:var(--navy);
+    cursor:pointer; transition:background 0.2s;
+  }
+  .source-chip:hover { background:var(--gold); color:white; }
+  .source-page { color:var(--muted); font-size:0.68rem; }
+
+  /* CONFIDENCE BAR */
+  .confidence {
+    display:flex; align-items:center; gap:0.5rem; margin-top:0.5rem;
+  }
+  .confidence-label { font-size:0.7rem; color:var(--muted); }
+  .confidence-bar { flex:1; height:4px; background:var(--border); border-radius:100px; max-width:80px; }
+  .confidence-fill { height:100%; background:var(--gold); border-radius:100px; }
+  .confidence-pct { font-size:0.7rem; font-weight:600; color:var(--gold); }
+
+  /* TYPING INDICATOR */
+  .typing { display:flex; gap:0.3rem; align-items:center; padding:0.5rem 0; }
+  .typing-dot {
+    width:6px; height:6px; border-radius:50%; background:var(--muted);
+    animation:typingBounce 1.2s ease-in-out infinite;
+  }
+  .typing-dot:nth-child(2) { animation-delay:0.2s; }
+  .typing-dot:nth-child(3) { animation-delay:0.4s; }
+  @keyframes typingBounce {
+    0%,60%,100% { transform:translateY(0); }
+    30% { transform:translateY(-4px); }
+  }
+
+  /* INPUT */
+  .chat-input-area {
+    border-top:1px solid var(--border); padding:1.25rem 2rem;
+    background:var(--white); display:flex; gap:0.75rem; align-items:flex-end;
+  }
+  .chat-input {
+    flex:1; border:1px solid var(--border); border-radius:10px;
+    padding:0.75rem 1rem; font-size:0.88rem;
+    font-family:'Outfit',sans-serif; color:var(--text);
+    resize:none; outline:none; min-height:46px; max-height:120px;
+    transition:border-color 0.2s;
+  }
+  .chat-input:focus { border-color:var(--gold); }
+  .send-btn {
+    background:var(--navy); color:white; border:none;
+    width:46px; height:46px; border-radius:10px;
+    cursor:pointer; font-size:1.1rem;
+    transition:background 0.2s, transform 0.15s;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .send-btn:hover { background:#2D3561; transform:scale(1.04); }
+
+  /* SUGGESTED QUESTIONS */
+  .suggestions { display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem; }
+  .suggestion-chip {
+    border:1px solid var(--border); border-radius:100px;
+    padding:0.4rem 0.9rem; font-size:0.75rem; color:var(--navy);
+    cursor:pointer; background:var(--white);
+    transition:border-color 0.2s, background 0.2s;
+    white-space:nowrap;
+  }
+  .suggestion-chip:hover { border-color:var(--gold); background:rgba(184,150,90,0.05); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="index.html" class="topbar-back">← Back to Portfolio</a>
+  <div class="topbar-title">RAG Document Q&A Agent</div>
+  <span class="topbar-tag">Project 01</span>
+</div>
+
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+
+    <div>
+      <div class="sidebar-section-label">Document</div>
+      <div class="upload-zone">
+        <div class="upload-icon">📄</div>
+        <div class="upload-title">Drop your document here</div>
+        <div class="upload-sub">PDF, DOCX, TXT — up to 50MB</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sidebar-section-label">Loaded Documents</div>
+      <div class="file-item active">
+        <div class="file-icon">📑</div>
+        <div>
+          <div class="file-name">Annual_Report_2024.pdf</div>
+          <div class="file-meta">124 pages · 847 chunks indexed</div>
+        </div>
+        <div class="file-status">✓ Ready</div>
+      </div>
+      <div class="file-item" style="margin-top:0.5rem;opacity:0.6;">
+        <div class="file-icon">📋</div>
+        <div>
+          <div class="file-name">Q3_Strategy_Deck.pdf</div>
+          <div class="file-meta">38 pages · Not loaded</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sidebar-section-label">Chunk Preview</div>
+      <div class="chunk-preview">
+        "...revenue grew by 23% year-on-year driven primarily by expansion in the South Asian market. The digital transformation initiative contributed ₹4.2 crore to top-line growth, with customer acquisition costs declining 18% through optimized channel strategy..."
+      </div>
+    </div>
+
+    <div>
+      <div class="sidebar-section-label">Settings</div>
+      <div class="setting-row">
+        <div class="setting-label">Retrieval Model</div>
+        <select class="setting-select">
+          <option>text-embedding-3-large</option>
+          <option>text-embedding-3-small</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Top-K Chunks Retrieved</div>
+        <input class="setting-input" type="number" value="5" min="1" max="20"/>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Response Model</div>
+        <select class="setting-select">
+          <option>gpt-4o</option>
+          <option>gpt-4o-mini</option>
+        </select>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MAIN CHAT -->
+  <div class="main">
+    <div class="chat-area" id="chatArea">
+
+      <!-- WELCOME -->
+      <div style="text-align:center;padding:2rem 0;">
+        <div style="font-size:2.5rem;margin-bottom:0.75rem;">📄</div>
+        <div style="font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:600;color:var(--navy);margin-bottom:0.5rem;">Document loaded and indexed</div>
+        <div style="font-size:0.88rem;color:var(--muted);">847 chunks embedded · Ready to answer questions from your document</div>
+      </div>
+
+      <!-- SUGGESTIONS -->
+      <div style="max-width:800px;width:100%;margin:0 auto;">
+        <div style="font-size:0.75rem;color:var(--muted);margin-bottom:0.5rem;font-weight:500;">Try asking:</div>
+        <div class="suggestions">
+          <div class="suggestion-chip" onclick="askQuestion(this)">What were the key revenue drivers?</div>
+          <div class="suggestion-chip" onclick="askQuestion(this)">Summarise the strategy section</div>
+          <div class="suggestion-chip" onclick="askQuestion(this)">What risks are mentioned?</div>
+          <div class="suggestion-chip" onclick="askQuestion(this)">Compare Q1 and Q3 performance</div>
+        </div>
+      </div>
+
+      <!-- DEMO CONVERSATION -->
+      <div class="msg user">
+        <div class="msg-avatar">AR</div>
+        <div class="msg-bubble">What were the main revenue growth drivers in 2024 according to the report?</div>
+      </div>
+
+      <div class="msg">
+        <div class="msg-avatar">🤖</div>
+        <div class="msg-bubble">
+          According to the Annual Report 2024, revenue growth was driven by three primary factors:
+          <br><br>
+          <strong>1. South Asian Market Expansion</strong> — The company reported 23% year-on-year revenue growth, with the South Asian market as the dominant contributor. Geographic expansion into Tier-2 cities accounted for approximately 40% of new customer acquisition.
+          <br><br>
+          <strong>2. Digital Transformation Initiative</strong> — This programme contributed ₹4.2 crore to top-line growth, primarily through the new self-service portal which reduced operational costs while increasing transaction volume by 31%.
+          <br><br>
+          <strong>3. Optimised Customer Acquisition</strong> — Customer acquisition costs declined 18% through a shift from broad media to performance-based digital channels, improving overall unit economics.
+
+          <div class="sources">
+            <div class="sources-label">Source Chunks Retrieved</div>
+            <span class="source-chip">📄 Page 14 <span class="source-page">§ Revenue Overview</span></span>
+            <span class="source-chip">📄 Page 31 <span class="source-page">§ Digital Strategy</span></span>
+            <span class="source-chip">📄 Page 47 <span class="source-page">§ Market Expansion</span></span>
+          </div>
+          <div class="confidence">
+            <span class="confidence-label">Confidence</span>
+            <div class="confidence-bar"><div class="confidence-fill" style="width:91%"></div></div>
+            <span class="confidence-pct">91%</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="msg user">
+        <div class="msg-avatar">AR</div>
+        <div class="msg-bubble">What risks did they flag for 2025?</div>
+      </div>
+
+      <div class="msg">
+        <div class="msg-avatar">🤖</div>
+        <div class="msg-bubble">
+          The report identifies four key risk categories for 2025:
+          <br><br>
+          <strong>Regulatory Risk</strong> — Upcoming data localisation requirements may necessitate infrastructure investments of ₹80–120L.
+          <br><br>
+          <strong>Competitive Pressure</strong> — Three new entrants in the South Asian market were named, with two backed by international capital.
+          <br><br>
+          <strong>Talent Acquisition</strong> — Engineering and data science roles remain the hardest to fill, with average time-to-hire at 94 days.
+          <br><br>
+          <strong>Currency Volatility</strong> — ~12% of revenues are USD-denominated; a sustained appreciation of INR could compress margins by 1.5–2%.
+
+          <div class="sources">
+            <div class="sources-label">Source Chunks Retrieved</div>
+            <span class="source-chip">📄 Page 68 <span class="source-page">§ Risk Factors</span></span>
+            <span class="source-chip">📄 Page 71 <span class="source-page">§ Regulatory Environment</span></span>
+          </div>
+          <div class="confidence">
+            <span class="confidence-label">Confidence</span>
+            <div class="confidence-bar"><div class="confidence-fill" style="width:87%"></div></div>
+            <span class="confidence-pct">87%</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- INPUT -->
+    <div class="chat-input-area">
+      <textarea class="chat-input" id="chatInput" placeholder="Ask anything about your document..." rows="1"
+        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}"></textarea>
+      <button class="send-btn" onclick="sendMsg()">↑</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function askQuestion(el) {
+  document.getElementById('chatInput').value = el.textContent;
+  document.getElementById('chatInput').focus();
+}
+
+function sendMsg() {
+  const input = document.getElementById('chatInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const chatArea = document.getElementById('chatArea');
+
+  // Add user message
+  const userMsg = document.createElement('div');
+  userMsg.className = 'msg user';
+  userMsg.innerHTML = `<div class="msg-avatar">AR</div><div class="msg-bubble">${text}</div>`;
+  chatArea.appendChild(userMsg);
+  input.value = '';
+
+  // Add typing indicator
+  const typingMsg = document.createElement('div');
+  typingMsg.className = 'msg';
+  typingMsg.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble"><div class="typing"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div></div>`;
+  chatArea.appendChild(typingMsg);
+  chatArea.scrollTop = chatArea.scrollHeight;
+
+  setTimeout(() => {
+    typingMsg.remove();
+    const botMsg = document.createElement('div');
+    botMsg.className = 'msg';
+    botMsg.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble">
+      This is a UI demo. In the live version, this response would be grounded in your uploaded document — retrieving the most relevant chunks from ChromaDB and generating an accurate, cited answer using GPT-4o.
+      <div class="sources">
+        <div class="sources-label">Source Chunks Retrieved</div>
+        <span class="source-chip">📄 Page 12 <span class="source-page">§ Relevant Section</span></span>
+        <span class="source-chip">📄 Page 23 <span class="source-page">§ Related Content</span></span>
+      </div>
+      <div class="confidence">
+        <span class="confidence-label">Confidence</span>
+        <div class="confidence-bar"><div class="confidence-fill" style="width:84%"></div></div>
+        <span class="confidence-pct">84%</span>
+      </div>
+    </div>`;
+    chatArea.appendChild(botMsg);
+    chatArea.scrollTop = chatArea.scrollHeight;
+  }, 1500);
+}
+</script>
+</body>
+</html>

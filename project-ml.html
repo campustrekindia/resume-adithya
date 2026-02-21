@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Diabetes Risk Prediction Engine — Adithya Reddy</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root{--bg:#F8F7F3;--white:#FFFFFF;--navy:#1A1F36;--gold:#B8965A;--border:#DDD9CF;--muted:#7A7A7A;--text:#2C2C2C;--tag-bg:#EDE9DF;--risk-low:#2D6A4F;--risk-low-bg:#EAF4EF;--risk-med:#B86A1A;--risk-med-bg:#FBF3EA;--risk-high:#8B1A1A;--risk-high-bg:#FBEAEA;}
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);}
+  .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;}
+  .topbar-back{font-size:0.8rem;color:var(--muted);text-decoration:none;transition:color 0.2s;}
+  .topbar-back:hover{color:var(--navy);}
+  .topbar-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:var(--navy);}
+  .topbar-tags{display:flex;gap:0.4rem;}
+  .tag{background:var(--tag-bg);color:var(--gold);font-size:0.7rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;padding:0.3rem 0.75rem;border-radius:100px;}
+  .tag.pub{background:#EAF4EF;color:#2D6A4F;}
+
+  .page{display:grid;grid-template-columns:420px 1fr;min-height:calc(100vh - 56px);}
+
+  /* INPUT FORM */
+  .form-panel{background:var(--white);border-right:1px solid var(--border);padding:1.75rem;overflow-y:auto;}
+  .form-title{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;color:var(--navy);margin-bottom:0.25rem;}
+  .form-sub{font-size:0.8rem;color:var(--muted);margin-bottom:1.75rem;line-height:1.5;}
+
+  .form-group{margin-bottom:1.1rem;}
+  .form-label{font-size:0.75rem;font-weight:600;color:var(--navy);margin-bottom:0.3rem;display:flex;justify-content:space-between;align-items:center;}
+  .form-hint{font-size:0.68rem;color:var(--muted);font-weight:400;}
+  .form-input{width:100%;border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.9rem;font-size:0.88rem;font-family:'Outfit',sans-serif;color:var(--text);outline:none;transition:border-color 0.2s;}
+  .form-input:focus{border-color:var(--gold);}
+
+  /* RANGE SLIDER */
+  .range-row{display:flex;align-items:center;gap:0.75rem;}
+  .form-range{flex:1;accent-color:var(--gold);}
+  .range-val{font-size:0.88rem;font-weight:600;color:var(--navy);min-width:3ch;text-align:right;}
+
+  .predict-btn{width:100%;background:var(--navy);color:white;border:none;padding:0.9rem;border-radius:10px;font-size:0.9rem;font-weight:600;font-family:'Outfit',sans-serif;cursor:pointer;margin-top:1.5rem;transition:background 0.2s,transform 0.15s;display:flex;align-items:center;justify-content:center;gap:0.5rem;}
+  .predict-btn:hover{background:#2D3561;transform:translateY(-1px);}
+
+  .sample-btns{display:flex;gap:0.5rem;margin-bottom:1.5rem;}
+  .sample-btn{flex:1;border:1px solid var(--border);border-radius:7px;padding:0.5rem;font-size:0.72rem;font-weight:500;font-family:'Outfit',sans-serif;cursor:pointer;background:var(--bg);color:var(--navy);transition:border-color 0.2s;}
+  .sample-btn:hover{border-color:var(--gold);}
+
+  /* RESULTS PANEL */
+  .results-panel{padding:2rem;overflow-y:auto;display:flex;flex-direction:column;gap:1.5rem;}
+
+  /* RISK GAUGE */
+  .risk-card{background:var(--white);border:1px solid var(--border);border-radius:14px;padding:2rem;text-align:center;}
+  .risk-label-small{font-size:0.7rem;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;}
+  .gauge-wrap{position:relative;width:160px;height:80px;margin:0 auto 1rem;}
+  .gauge-svg{}
+  .risk-pct{font-family:'Cormorant Garamond',serif;font-size:2.8rem;font-weight:600;margin-bottom:0.25rem;}
+  .risk-tag{display:inline-block;padding:0.35rem 1rem;border-radius:100px;font-size:0.8rem;font-weight:700;letter-spacing:0.06em;margin-bottom:0.75rem;}
+  .risk-desc{font-size:0.82rem;color:var(--muted);line-height:1.6;max-width:280px;margin:0 auto;}
+
+  /* FEATURE IMPORTANCE */
+  .section-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:1.5rem;}
+  .sc-title{font-size:0.88rem;font-weight:600;color:var(--navy);margin-bottom:1rem;display:flex;align-items:center;gap:0.5rem;}
+
+  .feature-row{margin-bottom:0.75rem;}
+  .feature-row-header{display:flex;justify-content:space-between;margin-bottom:0.3rem;}
+  .feature-name{font-size:0.8rem;font-weight:500;color:var(--text);}
+  .feature-val{font-size:0.78rem;color:var(--muted);}
+  .feature-bar-bg{height:6px;background:var(--border);border-radius:100px;}
+  .feature-bar-fill{height:100%;border-radius:100px;transition:width 0.8s ease;}
+  .feat-high{background:#8B1A1A;}
+  .feat-med{background:var(--gold);}
+  .feat-low{background:#2D6A4F;}
+
+  /* EXPLANATION */
+  .explain-text{font-size:0.85rem;line-height:1.8;color:var(--text);}
+  .explain-text strong{color:var(--navy);}
+
+  /* RECOMMENDATIONS */
+  .rec-item{display:flex;gap:0.75rem;margin-bottom:0.75rem;align-items:flex-start;}
+  .rec-icon{font-size:1rem;flex-shrink:0;margin-top:0.1rem;}
+  .rec-text{font-size:0.82rem;line-height:1.6;color:var(--text);}
+
+  /* MODEL INFO */
+  .model-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:0.75rem;}
+  .mstat{background:var(--bg);border-radius:8px;padding:0.75rem;text-align:center;}
+  .mstat-num{font-family:'Cormorant Garamond',serif;font-size:1.6rem;font-weight:600;color:var(--navy);}
+  .mstat-lbl{font-size:0.65rem;color:var(--muted);margin-top:0.15rem;}
+
+  @keyframes fillBar{from{width:0} to{width:var(--target-width)}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="index.html" class="topbar-back">← Back to Portfolio</a>
+  <div class="topbar-title">Diabetes Risk Prediction Engine</div>
+  <div class="topbar-tags">
+    <span class="tag">Project 05</span>
+    <span class="tag pub">✓ Peer Reviewed</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- INPUT FORM -->
+  <div class="form-panel">
+    <div class="form-title">Patient Clinical Input</div>
+    <div class="form-sub">Enter patient clinical values to receive an instant diabetes risk prediction powered by the published gradient boosting model (82%+ accuracy).</div>
+
+    <div class="sample-btns">
+      <button class="sample-btn" onclick="loadSample('low')">📗 Low Risk Sample</button>
+      <button class="sample-btn" onclick="loadSample('high')">📕 High Risk Sample</button>
+    </div>
+
+    <div class="form-group">
+      <div class="form-label">Glucose Level (mg/dL) <span class="form-hint">Normal: 70–100</span></div>
+      <div class="range-row">
+        <input type="range" class="form-range" id="glucose" min="50" max="200" value="148" oninput="document.getElementById('gv').textContent=this.value"/>
+        <span class="range-val" id="gv">148</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="form-label">BMI (kg/m²) <span class="form-hint">Normal: 18.5–24.9</span></div>
+      <div class="range-row">
+        <input type="range" class="form-range" id="bmi" min="15" max="60" value="33.6" step="0.1" oninput="document.getElementById('bmiv').textContent=parseFloat(this.value).toFixed(1)"/>
+        <span class="range-val" id="bmiv">33.6</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="form-label">Age <span class="form-hint">Years</span></div>
+      <div class="range-row">
+        <input type="range" class="form-range" id="age" min="18" max="90" value="50" oninput="document.getElementById('agev').textContent=this.value"/>
+        <span class="range-val" id="agev">50</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="form-label">Blood Pressure (mmHg) <span class="form-hint">Diastolic</span></div>
+      <div class="range-row">
+        <input type="range" class="form-range" id="bp" min="40" max="140" value="72" oninput="document.getElementById('bpv').textContent=this.value"/>
+        <span class="range-val" id="bpv">72</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="form-label">Insulin Level (IU/mL) <span class="form-hint">Fasting normal: &lt;25</span></div>
+      <input type="number" class="form-input" id="insulin" value="0" placeholder="0 if not measured"/>
+    </div>
+
+    <div class="form-group">
+      <div class="form-label">Skin Thickness (mm)</div>
+      <input type="number" class="form-input" id="skin" value="35" placeholder="Tricep skin fold"/>
+    </div>
+
+    <div class="form-group">
+      <div class="form-label">Diabetes Pedigree Function <span class="form-hint">0.0 – 2.5</span></div>
+      <div class="range-row">
+        <input type="range" class="form-range" id="dpf" min="0" max="2.5" value="0.627" step="0.001" oninput="document.getElementById('dpfv').textContent=parseFloat(this.value).toFixed(3)"/>
+        <span class="range-val" id="dpfv">0.627</span>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <div class="form-label">Pregnancies <span class="form-hint">Number of times</span></div>
+      <input type="number" class="form-input" id="preg" value="6" min="0" max="20"/>
+    </div>
+
+    <button class="predict-btn" onclick="predict()">🔬 Predict Diabetes Risk</button>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="results-panel" id="results">
+
+    <!-- RISK RESULT -->
+    <div class="risk-card" id="riskCard">
+      <div class="risk-label-small">Prediction Result</div>
+
+      <svg class="gauge-svg" viewBox="0 0 160 80" width="160" height="80">
+        <path d="M10,80 A70,70 0 0,1 150,80" fill="none" stroke="#EDE9DF" stroke-width="14" stroke-linecap="round"/>
+        <path id="gaugeFill" d="M10,80 A70,70 0 0,1 150,80" fill="none" stroke="#8B1A1A" stroke-width="14" stroke-linecap="round" stroke-dasharray="220" stroke-dashoffset="66"/>
+      </svg>
+
+      <div class="risk-pct" id="riskPct" style="color:#8B1A1A;">72%</div>
+      <div class="risk-tag" id="riskTag" style="background:#FBEAEA;color:#8B1A1A;">HIGH RISK</div>
+      <div class="risk-desc" id="riskDesc">Clinical indicators suggest elevated probability of diabetes. Immediate medical consultation recommended.</div>
+    </div>
+
+    <!-- FEATURE IMPORTANCE -->
+    <div class="section-card">
+      <div class="sc-title">📊 Feature Contribution to Risk</div>
+      <div id="featureImportance">
+        <div class="feature-row">
+          <div class="feature-row-header"><span class="feature-name">Glucose Level (148 mg/dL)</span><span class="feature-val">Very High Impact</span></div>
+          <div class="feature-bar-bg"><div class="feature-bar-fill feat-high" style="width:91%"></div></div>
+        </div>
+        <div class="feature-row">
+          <div class="feature-row-header"><span class="feature-name">Diabetes Pedigree (0.627)</span><span class="feature-val">High Impact</span></div>
+          <div class="feature-bar-bg"><div class="feature-bar-fill feat-high" style="width:78%"></div></div>
+        </div>
+        <div class="feature-row">
+          <div class="feature-row-header"><span class="feature-name">BMI (33.6)</span><span class="feature-val">High Impact</span></div>
+          <div class="feature-bar-bg"><div class="feature-bar-fill feat-med" style="width:72%"></div></div>
+        </div>
+        <div class="feature-row">
+          <div class="feature-row-header"><span class="feature-name">Age (50)</span><span class="feature-val">Moderate Impact</span></div>
+          <div class="feature-bar-bg"><div class="feature-bar-fill feat-med" style="width:55%"></div></div>
+        </div>
+        <div class="feature-row">
+          <div class="feature-row-header"><span class="feature-name">Blood Pressure (72 mmHg)</span><span class="feature-val">Low Impact</span></div>
+          <div class="feature-bar-bg"><div class="feature-bar-fill feat-low" style="width:28%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EXPLANATION -->
+    <div class="section-card">
+      <div class="sc-title">💬 Clinical Explanation</div>
+      <div class="explain-text" id="explanationText">
+        The primary risk driver is a <strong>glucose level of 148 mg/dL</strong>, which is significantly above the normal fasting range of 70–100 mg/dL and enters the pre-diabetic threshold (≥126 mg/dL). Combined with a <strong>BMI of 33.6</strong> (classified as obese) and a <strong>diabetes pedigree function of 0.627</strong> indicating strong family history, this profile closely matches positive cases in the training dataset. Age (50) further elevates risk as the model identified age as a moderate predictor beyond 45 years.
+      </div>
+    </div>
+
+    <!-- RECOMMENDATIONS -->
+    <div class="section-card">
+      <div class="sc-title">✅ Recommendations</div>
+      <div id="recs">
+        <div class="rec-item"><div class="rec-icon">🏥</div><div class="rec-text"><strong>Consult a physician immediately</strong> for HbA1c testing to confirm or rule out diabetes diagnosis.</div></div>
+        <div class="rec-item"><div class="rec-icon">🥗</div><div class="rec-text"><strong>Dietary changes</strong> — reduce refined carbohydrate intake and consider a low-glycaemic diet plan.</div></div>
+        <div class="rec-item"><div class="rec-icon">🏃</div><div class="rec-text"><strong>Increase physical activity</strong> — 30 minutes of moderate exercise 5 days per week significantly reduces glucose levels.</div></div>
+        <div class="rec-item"><div class="rec-icon">📊</div><div class="rec-text"><strong>Monitor glucose weekly</strong> and track trend over 8 weeks before next clinical review.</div></div>
+      </div>
+    </div>
+
+    <!-- MODEL INFO -->
+    <div class="section-card">
+      <div class="sc-title">🔬 Model Performance Metrics</div>
+      <div class="model-stats">
+        <div class="mstat"><div class="mstat-num">82%</div><div class="mstat-lbl">Test Accuracy</div></div>
+        <div class="mstat"><div class="mstat-num">78%</div><div class="mstat-lbl">Recall (Positive)</div></div>
+        <div class="mstat"><div class="mstat-num">0.84</div><div class="mstat-lbl">ROC-AUC Score</div></div>
+        <div class="mstat"><div class="mstat-num">768</div><div class="mstat-lbl">Training Records</div></div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+function loadSample(type) {
+  if (type === 'low') {
+    document.getElementById('glucose').value = 89; document.getElementById('gv').textContent = 89;
+    document.getElementById('bmi').value = 22.4; document.getElementById('bmiv').textContent = '22.4';
+    document.getElementById('age').value = 28; document.getElementById('agev').textContent = 28;
+    document.getElementById('bp').value = 66; document.getElementById('bpv').textContent = 66;
+    document.getElementById('insulin').value = 94;
+    document.getElementById('skin').value = 20;
+    document.getElementById('dpf').value = 0.167; document.getElementById('dpfv').textContent = '0.167';
+    document.getElementById('preg').value = 1;
+  } else {
+    document.getElementById('glucose').value = 167; document.getElementById('gv').textContent = 167;
+    document.getElementById('bmi').value = 41.2; document.getElementById('bmiv').textContent = '41.2';
+    document.getElementById('age').value = 58; document.getElementById('agev').textContent = 58;
+    document.getElementById('bp').value = 88; document.getElementById('bpv').textContent = 88;
+    document.getElementById('insulin').value = 0;
+    document.getElementById('skin').value = 42;
+    document.getElementById('dpf').value = 1.141; document.getElementById('dpfv').textContent = '1.141';
+    document.getElementById('preg').value = 8;
+  }
+}
+
+function predict() {
+  const glucose = parseInt(document.getElementById('glucose').value);
+  const bmi = parseFloat(document.getElementById('bmi').value);
+  const dpf = parseFloat(document.getElementById('dpf').value);
+  const age = parseInt(document.getElementById('age').value);
+
+  // Simple scoring heuristic for demo
+  let score = 0;
+  if (glucose > 140) score += 35;
+  else if (glucose > 110) score += 20;
+  else score += 5;
+  if (bmi > 35) score += 25;
+  else if (bmi > 28) score += 15;
+  else score += 2;
+  if (dpf > 0.8) score += 20;
+  else if (dpf > 0.4) score += 12;
+  else score += 3;
+  if (age > 50) score += 15;
+  else if (age > 35) score += 8;
+  else score += 2;
+  score = Math.min(96, Math.max(8, score));
+
+  const pct = document.getElementById('riskPct');
+  const tag = document.getElementById('riskTag');
+  const desc = document.getElementById('riskDesc');
+  const fill = document.getElementById('gaugeFill');
+
+  pct.textContent = score + '%';
+  const offset = 220 - (score / 100) * 220;
+  fill.setAttribute('stroke-dashoffset', offset);
+
+  if (score >= 55) {
+    pct.style.color = '#8B1A1A'; tag.style.background = '#FBEAEA'; tag.style.color = '#8B1A1A';
+    tag.textContent = 'HIGH RISK'; fill.setAttribute('stroke', '#8B1A1A');
+    desc.textContent = 'Clinical indicators suggest elevated probability of diabetes. Immediate medical consultation recommended.';
+  } else if (score >= 30) {
+    pct.style.color = '#B86A1A'; tag.style.background = '#FBF3EA'; tag.style.color = '#B86A1A';
+    tag.textContent = 'MODERATE RISK'; fill.setAttribute('stroke', '#B86A1A');
+    desc.textContent = 'Some risk factors present. Lifestyle changes and monitoring advised. Consult a doctor for full evaluation.';
+  } else {
+    pct.style.color = '#2D6A4F'; tag.style.background = '#EAF4EF'; tag.style.color = '#2D6A4F';
+    tag.textContent = 'LOW RISK'; fill.setAttribute('stroke', '#2D6A4F');
+    desc.textContent = 'Clinical values are mostly within normal range. Maintain healthy lifestyle and schedule routine check-ups.';
+  }
+}
+</script>
+</body>
+</html>

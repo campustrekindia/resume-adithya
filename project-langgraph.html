@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LangGraph Multi-Agent Pipeline — Adithya Reddy</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root{--bg:#F8F7F3;--white:#FFFFFF;--navy:#1A1F36;--gold:#B8965A;--border:#DDD9CF;--muted:#7A7A7A;--text:#2C2C2C;--tag-bg:#EDE9DF;}
+  *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);}
+  .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;}
+  .topbar-back{font-size:0.8rem;color:var(--muted);text-decoration:none;transition:color 0.2s;}
+  .topbar-back:hover{color:var(--navy);}
+  .topbar-title{font-family:'Cormorant Garamond',serif;font-size:1.1rem;font-weight:600;color:var(--navy);}
+  .topbar-tag{background:var(--tag-bg);color:var(--gold);font-size:0.7rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;padding:0.3rem 0.8rem;border-radius:100px;}
+
+  .page{display:grid;grid-template-columns:1fr 380px;min-height:calc(100vh - 56px);}
+
+  /* LEFT: PIPELINE CANVAS */
+  .canvas{padding:2rem;overflow-y:auto;}
+  .canvas-title{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;color:var(--navy);margin-bottom:0.25rem;}
+  .canvas-sub{font-size:0.82rem;color:var(--muted);margin-bottom:2rem;}
+
+  /* TOPIC INPUT */
+  .topic-bar{display:flex;gap:0.75rem;margin-bottom:2.5rem;}
+  .topic-input{flex:1;border:1px solid var(--border);border-radius:8px;padding:0.75rem 1rem;font-size:0.88rem;font-family:'Outfit',sans-serif;color:var(--text);outline:none;transition:border-color 0.2s;}
+  .topic-input:focus{border-color:var(--gold);}
+  .run-btn{background:var(--navy);color:white;border:none;padding:0.75rem 1.25rem;border-radius:8px;font-size:0.85rem;font-weight:600;font-family:'Outfit',sans-serif;cursor:pointer;transition:background 0.2s;}
+  .run-btn:hover{background:#2D3561;}
+
+  /* PIPELINE FLOW */
+  .pipeline{display:flex;flex-direction:column;gap:0;align-items:center;max-width:600px;margin:0 auto;}
+
+  .node{width:100%;background:var(--white);border:1px solid var(--border);border-radius:12px;padding:1.25rem 1.5rem;position:relative;transition:border-color 0.3s,box-shadow 0.3s;}
+  .node.active{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,150,90,0.1);}
+  .node.complete{border-color:#2D6A4F;}
+  .node.waiting{opacity:0.4;}
+
+  .node-header{display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;}
+  .node-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0;}
+  .node-icon.researcher{background:#EAF0FB;}
+  .node-icon.editor{background:var(--tag-bg);}
+  .node-icon.writer{background:#EAF4EF;}
+  .node-icon.human{background:#FBF0EA;}
+
+  .node-label{font-size:0.65rem;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);}
+  .node-name{font-size:0.95rem;font-weight:600;color:var(--navy);}
+
+  .node-status{margin-left:auto;font-size:0.7rem;font-weight:600;padding:0.25rem 0.65rem;border-radius:100px;}
+  .node-status.running{background:#FBF3EA;color:#F0A500;}
+  .node-status.done{background:#EAF4EF;color:#2D6A4F;}
+  .node-status.idle{background:var(--bg);color:var(--muted);}
+  .node-status.waiting-approval{background:#FBF0EA;color:#B85A20;}
+
+  .node-output{font-size:0.8rem;line-height:1.6;color:var(--muted);border-top:1px solid var(--border);margin-top:0.75rem;padding-top:0.75rem;}
+  .node-output.has-content{color:var(--text);}
+
+  /* CONNECTOR */
+  .connector{display:flex;flex-direction:column;align-items:center;gap:0;padding:0.25rem 0;}
+  .connector-line{width:1px;height:24px;background:var(--border);}
+  .connector-arrow{color:var(--muted);font-size:0.7rem;}
+  .connector-label{font-size:0.65rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);background:var(--bg);padding:0.15rem 0.5rem;border-radius:100px;border:1px solid var(--border);}
+
+  /* HUMAN GATE */
+  .human-gate{width:100%;background:#FFF8F0;border:2px solid #F0A500;border-radius:12px;padding:1.25rem 1.5rem;}
+  .human-gate-header{display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;}
+  .human-gate-title{font-size:0.9rem;font-weight:600;color:#B85A20;}
+  .gate-actions{display:flex;gap:0.6rem;margin-top:0.75rem;}
+  .gate-btn{padding:0.5rem 1rem;border-radius:6px;font-size:0.78rem;font-weight:600;font-family:'Outfit',sans-serif;cursor:pointer;transition:all 0.2s;}
+  .gate-approve{background:var(--navy);color:white;border:none;}
+  .gate-approve:hover{background:#2D3561;}
+  .gate-reject{background:white;color:var(--muted);border:1px solid var(--border);}
+  .gate-reject:hover{border-color:var(--navy);color:var(--navy);}
+
+  /* RIGHT: OUTPUT PANEL */
+  .output-panel{background:var(--white);border-left:1px solid var(--border);padding:1.5rem;display:flex;flex-direction:column;gap:1.25rem;overflow-y:auto;}
+  .panel-label{font-size:0.68rem;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:0.6rem;}
+
+  .output-block{background:var(--bg);border-radius:8px;padding:1rem;font-size:0.82rem;line-height:1.7;color:var(--text);min-height:80px;}
+  .output-block.empty{color:var(--muted);font-style:italic;}
+
+  .final-article{background:var(--navy);color:white;border-radius:10px;padding:1.5rem;}
+  .article-title{font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:600;color:white;margin-bottom:0.75rem;line-height:1.3;}
+  .article-body{font-size:0.82rem;line-height:1.8;color:rgba(255,255,255,0.8);}
+
+  .export-btn{background:var(--gold);color:white;border:none;padding:0.65rem 1.25rem;border-radius:8px;font-size:0.82rem;font-weight:600;font-family:'Outfit',sans-serif;cursor:pointer;width:100%;transition:background 0.2s;}
+  .export-btn:hover{background:#9A7A45;}
+
+  .meta-row{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.5rem;}
+  .meta-chip{background:var(--tag-bg);color:var(--navy);font-size:0.68rem;font-weight:500;padding:0.2rem 0.6rem;border-radius:100px;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="index.html" class="topbar-back">← Back to Portfolio</a>
+  <div class="topbar-title">LangGraph Multi-Agent Pipeline</div>
+  <span class="topbar-tag">Project 04</span>
+</div>
+
+<div class="page">
+
+  <!-- PIPELINE CANVAS -->
+  <div class="canvas">
+    <div class="canvas-title">Content Production Pipeline</div>
+    <div class="canvas-sub">Three specialized agents collaborate in sequence. Human approval required before final writing begins.</div>
+
+    <div class="topic-bar">
+      <input class="topic-input" id="topicInput" value="The rise of Agentic AI in enterprise operations — 2025 trends"/>
+      <button class="run-btn" onclick="runPipeline()">▶ Run Pipeline</button>
+    </div>
+
+    <div class="pipeline" id="pipeline">
+
+      <!-- RESEARCHER -->
+      <div class="node complete" id="node-researcher">
+        <div class="node-header">
+          <div class="node-icon researcher">🔍</div>
+          <div>
+            <div class="node-label">Agent 1</div>
+            <div class="node-name">Research Agent</div>
+          </div>
+          <span class="node-status done" id="status-researcher">✓ Done</span>
+        </div>
+        <div class="node-output has-content" id="output-researcher">
+          Found 8 relevant sources. Key findings: Enterprise agent adoption up 340% in 2024 (Gartner). Top use cases: customer support automation (67%), data analysis (54%), document processing (48%). Average ROI: 3.2x in first year of deployment. Notable implementations: JPMorgan (trading agents), Salesforce (Einstein agents), ServiceNow (resolution agents).
+        </div>
+      </div>
+
+      <div class="connector">
+        <div class="connector-line"></div>
+        <div class="connector-label">Hands off research</div>
+        <div class="connector-line"></div>
+      </div>
+
+      <!-- EDITOR -->
+      <div class="node complete" id="node-editor">
+        <div class="node-header">
+          <div class="node-icon editor">✏️</div>
+          <div>
+            <div class="node-label">Agent 2</div>
+            <div class="node-name">Editor Agent</div>
+          </div>
+          <span class="node-status done" id="status-editor">✓ Done</span>
+        </div>
+        <div class="node-output has-content" id="output-editor">
+          Structured outline: (1) Executive summary — what agentic AI is and why it matters now, (2) The enterprise adoption surge — Gartner data + real examples, (3) Top 5 use cases with ROI data, (4) Implementation challenges and how to overcome them, (5) What to expect in 2025–2026.
+        </div>
+      </div>
+
+      <div class="connector">
+        <div class="connector-line"></div>
+        <div class="connector-label">Outline ready for review</div>
+        <div class="connector-line"></div>
+      </div>
+
+      <!-- HUMAN GATE -->
+      <div class="human-gate" id="human-gate">
+        <div class="human-gate-header">
+          <span style="font-size:1.2rem;">👤</span>
+          <div class="human-gate-title">Human Approval Gate</div>
+          <span class="node-status waiting-approval" style="margin-left:auto;">⏳ Awaiting</span>
+        </div>
+        <div style="font-size:0.82rem;color:var(--muted);line-height:1.6;">Review the outline above before writing begins. Approve to proceed or request changes.</div>
+        <div class="gate-actions">
+          <button class="gate-btn gate-approve" onclick="approveGate()">✓ Approve Outline</button>
+          <button class="gate-btn gate-reject" onclick="rejectGate()">✎ Request Changes</button>
+        </div>
+      </div>
+
+      <div class="connector">
+        <div class="connector-line"></div>
+        <div class="connector-label">Approved — begin writing</div>
+        <div class="connector-line"></div>
+      </div>
+
+      <!-- WRITER -->
+      <div class="node waiting" id="node-writer">
+        <div class="node-header">
+          <div class="node-icon writer">✍️</div>
+          <div>
+            <div class="node-label">Agent 3</div>
+            <div class="node-name">Writer Agent</div>
+          </div>
+          <span class="node-status idle" id="status-writer">Waiting</span>
+        </div>
+        <div class="node-output" id="output-writer">Waiting for outline approval...</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- OUTPUT PANEL -->
+  <div class="output-panel">
+
+    <div>
+      <div class="panel-label">Topic</div>
+      <div class="output-block">The rise of Agentic AI in enterprise operations — 2025 trends</div>
+    </div>
+
+    <div>
+      <div class="panel-label">Research Summary</div>
+      <div class="output-block">8 sources indexed. Gartner, McKinsey, Salesforce, ServiceNow reports. Key stat: 340% adoption growth in 2024.</div>
+    </div>
+
+    <div>
+      <div class="panel-label">Approved Outline</div>
+      <div class="output-block" id="approved-outline-display">Waiting for approval...</div>
+    </div>
+
+    <div id="final-output" style="display:none;">
+      <div class="panel-label">Final Article</div>
+      <div class="final-article">
+        <div class="article-title">The Agentic AI Revolution: How Enterprises Are Automating Work in 2025</div>
+        <div class="article-body">Enterprise adoption of agentic AI systems surged 340% in 2024, according to Gartner — and 2025 is set to be the year this technology moves from pilot programmes to core infrastructure.<br><br>Unlike traditional AI tools that respond to queries, agentic systems take initiative. They plan, execute multi-step tasks, use external tools, and adapt when things go wrong — all with minimal human oversight.<br><br>The numbers are compelling: organisations that deployed agent systems in 2024 reported an average ROI of 3.2x within the first year, driven primarily by reductions in manual operations and faster decision cycles...</div>
+      </div>
+      <button class="export-btn" style="margin-top:0.75rem;">↓ Export Article</button>
+    </div>
+
+    <div>
+      <div class="panel-label">Pipeline Metadata</div>
+      <div class="meta-row">
+        <span class="meta-chip">LangGraph</span>
+        <span class="meta-chip">GPT-4o</span>
+        <span class="meta-chip">3 Agents</span>
+        <span class="meta-chip">Human-in-Loop</span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+function approveGate() {
+  document.getElementById('approved-outline-display').textContent = '5-section structure approved. Writing begins now.';
+  document.getElementById('approved-outline-display').classList.remove('empty');
+
+  const gate = document.getElementById('human-gate');
+  gate.style.borderColor = '#2D6A4F';
+  gate.style.background = '#EAF4EF';
+  gate.querySelector('.human-gate-title').style.color = '#2D6A4F';
+  gate.querySelector('.node-status').textContent = '✓ Approved';
+  gate.querySelector('.node-status').className = 'node-status done';
+  gate.querySelector('.gate-actions').innerHTML = '';
+
+  const writerNode = document.getElementById('node-writer');
+  writerNode.classList.remove('waiting');
+  writerNode.classList.add('active');
+  document.getElementById('status-writer').textContent = '⟳ Writing...';
+  document.getElementById('status-writer').className = 'node-status running';
+  document.getElementById('output-writer').textContent = 'Drafting article based on approved outline and research findings...';
+
+  setTimeout(() => {
+    writerNode.classList.remove('active');
+    writerNode.classList.add('complete');
+    document.getElementById('status-writer').textContent = '✓ Done';
+    document.getElementById('status-writer').className = 'node-status done';
+    document.getElementById('output-writer').textContent = 'Article written: 820 words, 5 sections, 4 citations included.';
+    document.getElementById('output-writer').classList.add('has-content');
+    document.getElementById('final-output').style.display = 'block';
+  }, 2500);
+}
+
+function rejectGate() {
+  alert('In the live version, you would enter feedback here and the Editor Agent would revise the outline before returning for re-approval.');
+}
+
+function runPipeline() {
+  ['researcher','editor'].forEach(id => {
+    const n = document.getElementById(`node-${id}`);
+    n.classList.remove('complete');
+    n.classList.add('active');
+    document.getElementById(`status-${id}`).textContent = '⟳ Running';
+    document.getElementById(`status-${id}`).className = 'node-status running';
+    document.getElementById(`output-${id}`).textContent = 'Processing...';
+    document.getElementById(`output-${id}`).classList.remove('has-content');
+  });
+
+  document.getElementById('node-writer').classList.add('waiting');
+  document.getElementById('final-output').style.display = 'none';
+
+  setTimeout(() => {
+    const rn = document.getElementById('node-researcher');
+    rn.classList.remove('active'); rn.classList.add('complete');
+    document.getElementById('status-researcher').textContent = '✓ Done';
+    document.getElementById('status-researcher').className = 'node-status done';
+    document.getElementById('output-researcher').textContent = `Found 8 sources on: "${document.getElementById('topicInput').value}". Key data points identified and ready for structuring.`;
+    document.getElementById('output-researcher').classList.add('has-content');
+  }, 1200);
+
+  setTimeout(() => {
+    const en = document.getElementById('node-editor');
+    en.classList.remove('active'); en.classList.add('complete');
+    document.getElementById('status-editor').textContent = '✓ Done';
+    document.getElementById('status-editor').className = 'node-status done';
+    document.getElementById('output-editor').textContent = '5-section outline created based on research findings. Awaiting human approval.';
+    document.getElementById('output-editor').classList.add('has-content');
+
+    document.getElementById('human-gate').style.borderColor = '#F0A500';
+    document.getElementById('human-gate').style.background = '#FFF8F0';
+    document.getElementById('human-gate').querySelector('.node-status').textContent = '⏳ Awaiting';
+    document.getElementById('human-gate').querySelector('.node-status').className = 'node-status waiting-approval';
+    document.getElementById('human-gate').querySelector('.gate-actions').innerHTML = `
+      <button class="gate-btn gate-approve" onclick="approveGate()">✓ Approve Outline</button>
+      <button class="gate-btn gate-reject" onclick="rejectGate()">✎ Request Changes</button>`;
+  }, 2400);
+}
+</script>
+</body>
+</html>

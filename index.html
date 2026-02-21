@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Adithya Reddy — AI Engineer & Data Scientist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #F8F7F3;
+    --bg2: #EFEDE6;
+    --navy: #1A1F36;
+    --navy-light: #2D3561;
+    --gold: #B8965A;
+    --gold-light: #D4AF7A;
+    --text: #2C2C2C;
+    --muted: #7A7A7A;
+    --border: #DDD9CF;
+    --white: #FFFFFF;
+    --tag-bg: #EDE9DF;
+  }
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(248,247,243,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 5%;
+    height: 64px;
+  }
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--navy);
+    letter-spacing: 0.02em;
+  }
+  .nav-logo span { color: var(--gold); }
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--navy); }
+  .nav-cta {
+    background: var(--navy);
+    color: var(--white) !important;
+    padding: 0.5rem 1.2rem;
+    border-radius: 4px;
+    font-size: 0.8rem !important;
+  }
+  .nav-cta:hover { background: var(--navy-light); color: var(--white) !important; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    padding: 0 5%;
+    padding-top: 64px;
+    gap: 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -200px;
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, rgba(184,150,90,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-eyebrow {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+  .hero-eyebrow-line { width: 32px; height: 1px; background: var(--gold); }
+  .hero-eyebrow span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(3rem, 5vw, 5.5rem);
+    font-weight: 300;
+    line-height: 1.05;
+    color: var(--navy);
+    margin-bottom: 0.5rem;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--gold);
+  }
+  .hero-sub {
+    font-size: 1.05rem;
+    font-weight: 300;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    max-width: 480px;
+  }
+  .hero-metrics {
+    display: flex; gap: 2rem; margin-bottom: 2.5rem;
+  }
+  .hero-metric { }
+  .hero-metric-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.2rem;
+    font-weight: 600;
+    color: var(--navy);
+    line-height: 1;
+  }
+  .hero-metric-label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    margin-top: 0.2rem;
+  }
+  .hero-metric-divider { width: 1px; background: var(--border); }
+  .hero-actions { display: flex; gap: 1rem; align-items: center; }
+  .btn-primary {
+    background: var(--navy);
+    color: var(--white);
+    padding: 0.85rem 2rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    transition: background 0.2s, transform 0.15s;
+  }
+  .btn-primary:hover { background: var(--navy-light); transform: translateY(-1px); }
+  .btn-secondary {
+    color: var(--navy);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    display: flex; align-items: center; gap: 0.4rem;
+    border-bottom: 1px solid var(--gold);
+    padding-bottom: 2px;
+    transition: color 0.2s;
+  }
+  .btn-secondary:hover { color: var(--gold); }
+
+  /* HERO RIGHT */
+  .hero-right {
+    position: relative;
+    display: flex; flex-direction: column; gap: 1rem;
+  }
+  .hero-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    animation: fadeUp 0.6s ease both;
+  }
+  .hero-card:nth-child(1) { animation-delay: 0.1s; }
+  .hero-card:nth-child(2) { animation-delay: 0.2s; margin-left: 2rem; }
+  .hero-card:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .hero-card-icon {
+    width: 36px; height: 36px;
+    background: var(--tag-bg);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 0.75rem;
+    font-size: 1.1rem;
+  }
+  .hero-card h3 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 0.3rem;
+  }
+  .hero-card p { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+  .card-tag {
+    display: inline-block;
+    background: var(--tag-bg);
+    color: var(--gold);
+    font-size: 0.65rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.6rem;
+    border-radius: 100px;
+    margin-top: 0.75rem;
+  }
+
+  /* SECTION COMMON */
+  section { padding: 6rem 5%; }
+  .section-label {
+    display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;
+  }
+  .section-label-line { width: 24px; height: 1px; background: var(--gold); }
+  .section-label span {
+    font-size: 0.72rem; font-weight: 600;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold);
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 3.5vw, 3.2rem);
+    font-weight: 300; line-height: 1.1;
+    color: var(--navy); margin-bottom: 1rem;
+  }
+  .section-subtitle { font-size: 1rem; color: var(--muted); max-width: 540px; line-height: 1.7; }
+
+  /* ABOUT */
+  .about { background: var(--white); }
+  .about-grid { display: grid; grid-template-columns: 1fr 1.4fr; gap: 5rem; align-items: start; margin-top: 3rem; }
+  .about-left { }
+  .about-summary {
+    font-size: 1rem; line-height: 1.8; color: var(--text); margin-bottom: 2rem;
+  }
+  .skills-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+  .skill-tag {
+    background: var(--tag-bg); border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.78rem; font-weight: 500; color: var(--navy);
+  }
+  .about-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
+  .about-stat {
+    border-top: 2px solid var(--gold);
+    padding-top: 1rem;
+  }
+  .about-stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.8rem; font-weight: 600; color: var(--navy); line-height: 1;
+  }
+  .about-stat-label { font-size: 0.78rem; color: var(--muted); margin-top: 0.4rem; line-height: 1.4; }
+
+  /* EXPERIENCE */
+  .experience { background: var(--bg); }
+  .timeline { margin-top: 3rem; position: relative; }
+  .timeline::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 1px; background: var(--border);
+  }
+  .timeline-item {
+    padding-left: 2.5rem; padding-bottom: 3rem; position: relative;
+  }
+  .timeline-dot {
+    position: absolute; left: -5px; top: 6px;
+    width: 11px; height: 11px;
+    border-radius: 50%; background: var(--gold);
+    border: 2px solid var(--bg);
+  }
+  .timeline-date {
+    font-size: 0.75rem; font-weight: 600;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 0.4rem;
+  }
+  .timeline-role {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; font-weight: 600; color: var(--navy); margin-bottom: 0.2rem;
+  }
+  .timeline-company { font-size: 0.9rem; color: var(--muted); margin-bottom: 0.75rem; }
+  .timeline-bullets { list-style: none; }
+  .timeline-bullets li {
+    font-size: 0.88rem; color: var(--text); line-height: 1.6;
+    padding: 0.3rem 0; padding-left: 1rem; position: relative;
+  }
+  .timeline-bullets li::before {
+    content: '—'; position: absolute; left: 0; color: var(--gold); font-size: 0.75rem;
+  }
+
+  /* PROJECTS */
+  .projects { background: var(--bg2); }
+  .projects-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 3rem; }
+  .project-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex; flex-direction: column;
+    position: relative; overflow: hidden;
+  }
+  .project-card::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 3px; background: var(--gold);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform 0.3s;
+  }
+  .project-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(26,31,54,0.08); }
+  .project-card:hover::after { transform: scaleX(1); }
+  .project-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3rem; font-weight: 300; color: var(--border);
+    line-height: 1; margin-bottom: 1rem;
+  }
+  .project-icon { font-size: 1.8rem; margin-bottom: 1rem; }
+  .project-title {
+    font-size: 1rem; font-weight: 600; color: var(--navy);
+    margin-bottom: 0.5rem; line-height: 1.3;
+  }
+  .project-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.6; margin-bottom: 1.5rem; flex: 1; }
+  .project-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+  .project-tag {
+    background: var(--tag-bg); color: var(--navy);
+    font-size: 0.68rem; font-weight: 500; letter-spacing: 0.04em;
+    padding: 0.25rem 0.6rem; border-radius: 100px;
+  }
+  .project-link {
+    font-size: 0.78rem; font-weight: 600; color: var(--gold);
+    letter-spacing: 0.06em; text-transform: uppercase;
+    display: flex; align-items: center; gap: 0.3rem;
+  }
+
+  /* PUBLICATIONS */
+  .publications { background: var(--white); }
+  .pub-card {
+    border: 1px solid var(--border); border-radius: 12px;
+    padding: 2rem 2.5rem;
+    display: grid; grid-template-columns: auto 1fr auto;
+    gap: 2rem; align-items: center;
+    margin-top: 2rem;
+  }
+  .pub-year {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.5rem; font-weight: 300; color: var(--border);
+  }
+  .pub-title { font-size: 1rem; font-weight: 600; color: var(--navy); margin-bottom: 0.4rem; }
+  .pub-desc { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+  .pub-badge {
+    background: var(--tag-bg); color: var(--gold);
+    font-size: 0.7rem; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 0.4rem 0.9rem; border-radius: 100px;
+    white-space: nowrap;
+  }
+
+  /* CONTACT */
+  .contact {
+    background: var(--navy);
+    color: var(--white);
+    text-align: center;
+    padding: 6rem 5%;
+  }
+  .contact .section-label-line { background: var(--gold); }
+  .contact .section-label span { color: var(--gold); }
+  .contact .section-title { color: var(--white); }
+  .contact-sub { font-size: 1rem; color: rgba(255,255,255,0.6); margin-bottom: 3rem; }
+  .contact-links { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+  .contact-link {
+    display: flex; align-items: center; gap: 0.5rem;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px; padding: 0.8rem 1.5rem;
+    color: var(--white); text-decoration: none;
+    font-size: 0.85rem; font-weight: 400;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .contact-link:hover { border-color: var(--gold); background: rgba(184,150,90,0.1); }
+  .contact-link-icon { font-size: 1rem; }
+
+  /* FOOTER */
+  footer {
+    background: #13172B;
+    text-align: center;
+    padding: 1.5rem;
+    font-size: 0.78rem; color: rgba(255,255,255,0.3);
+  }
+
+  /* SCROLL ANIMATIONS */
+  .reveal {
+    opacity: 0; transform: translateY(28px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; padding-top: 100px; }
+    .hero-right { display: none; }
+    .about-grid { grid-template-columns: 1fr; gap: 2rem; }
+    .projects-grid { grid-template-columns: 1fr 1fr; }
+    .pub-card { grid-template-columns: 1fr; }
+    .pub-year { font-size: 1.5rem; }
+    nav .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Adithya <span>Reddy</span></div>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#publications">Research</a></li>
+    <li><a href="#contact" class="nav-cta">Hire Me</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-left">
+    <div class="hero-eyebrow">
+      <div class="hero-eyebrow-line"></div>
+      <span>Available for Opportunities · Hyderabad, India</span>
+    </div>
+    <h1>Building <em>Intelligent</em><br>Systems That<br>Drive Results</h1>
+    <p class="hero-sub">Agentic AI Engineer and Data Scientist with 3+ years delivering autonomous pipelines, predictive models, and analytics platforms that generate real business impact.</p>
+    <div class="hero-metrics">
+      <div class="hero-metric">
+        <div class="hero-metric-num">₹1.4Cr</div>
+        <div class="hero-metric-label">Revenue Impact</div>
+      </div>
+      <div class="hero-metric-divider"></div>
+      <div class="hero-metric">
+        <div class="hero-metric-num">3,000+</div>
+        <div class="hero-metric-label">Leads Generated</div>
+      </div>
+      <div class="hero-metric-divider"></div>
+      <div class="hero-metric">
+        <div class="hero-metric-num">20hrs</div>
+        <div class="hero-metric-label">Saved Weekly</div>
+      </div>
+    </div>
+    <div class="hero-actions">
+      <a href="#projects" class="btn-primary">View Projects</a>
+      <a href="#contact" class="btn-secondary">Get in Touch →</a>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-card">
+      <div class="hero-card-icon">🤖</div>
+      <h3>Agentic AI Systems</h3>
+      <p>Designing autonomous multi-agent pipelines that replace manual workflows end-to-end in production.</p>
+      <div class="card-tag">LangChain · LangGraph · OpenAI</div>
+    </div>
+    <div class="hero-card">
+      <div class="hero-card-icon">📊</div>
+      <h3>Data Science & Analytics</h3>
+      <p>From raw data to deployed predictive models and executive dashboards that drive decision-making.</p>
+      <div class="card-tag">Python · Power BI · scikit-learn</div>
+    </div>
+    <div class="hero-card">
+      <div class="hero-card-icon">🏗️</div>
+      <h3>AI Product Architecture</h3>
+      <p>Translating complex AI capabilities into clear product roadmaps that engineering teams can execute.</p>
+      <div class="card-tag">Product Strategy · SQL · APIs</div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="about" id="about">
+  <div class="section-label"><div class="section-label-line"></div><span>About Me</span></div>
+  <h2 class="section-title">Engineer. Analyst.<br><em style="font-family:'Cormorant Garamond',serif;font-style:italic;">Builder.</em></h2>
+  <div class="about-grid reveal">
+    <div class="about-left">
+      <p class="about-summary">I build things that generate revenue and save real money. With a Bachelor of Technology in Data Science from KL University and 3 years of full-time experience across 4 organizations, I sit at the rare intersection of deep technical capability and business acumen.</p>
+      <p class="about-summary" style="margin-top:0;">My edge: most engineers who build agent systems don't understand the business context. Because I've managed ad budgets, written product roadmaps, and analyzed why campaigns succeed or fail — I build systems that actually get adopted.</p>
+      <div class="skills-grid" style="margin-top:1.5rem;">
+        <div class="skill-tag">Agentic AI</div>
+        <div class="skill-tag">LLM Orchestration</div>
+        <div class="skill-tag">Python</div>
+        <div class="skill-tag">SQL</div>
+        <div class="skill-tag">Power BI</div>
+        <div class="skill-tag">Machine Learning</div>
+        <div class="skill-tag">LangChain</div>
+        <div class="skill-tag">RAG Pipelines</div>
+      </div>
+    </div>
+    <div class="about-right">
+      <div class="about-stats">
+        <div class="about-stat">
+          <div class="about-stat-num">5+</div>
+          <div class="about-stat-label">Years Building Intelligent Products</div>
+        </div>
+        <div class="about-stat">
+          <div class="about-stat-num">4</div>
+          <div class="about-stat-label">Organizations Delivered Impact</div>
+        </div>
+        <div class="about-stat">
+          <div class="about-stat-num">18+</div>
+          <div class="about-stat-label">Corporate Hiring Partners Connected</div>
+        </div>
+        <div class="about-stat">
+          <div class="about-stat-num">82%</div>
+          <div class="about-stat-label">Accuracy — Published ML Research</div>
+        </div>
+        <div class="about-stat">
+          <div class="about-stat-num">40%</div>
+          <div class="about-stat-label">Operational Cost Reduction Delivered</div>
+        </div>
+        <div class="about-stat">
+          <div class="about-stat-num">80%</div>
+          <div class="about-stat-label">Faster Product Delivery at Eject</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EXPERIENCE -->
+<section class="experience" id="experience">
+  <div class="section-label"><div class="section-label-line"></div><span>Experience</span></div>
+  <h2 class="section-title">Where I've<br>Made an Impact</h2>
+  <div class="timeline reveal" style="margin-top:3rem;max-width:720px;">
+
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="timeline-date">November 2025 — Present</div>
+      <div class="timeline-role">Agentic AI Engineer</div>
+      <div class="timeline-company">Teetotaler.ai · Full-time</div>
+      <ul class="timeline-bullets">
+        <li>Deployed 5 autonomous agent pipelines saving 20+ hours of manual operations weekly — equivalent to ₹1.2L/month in recovered capacity.</li>
+        <li>Reduced client report delivery from 3 days to under 4 hours through LLM-powered automated workflows.</li>
+        <li>Established the agency as one of fewer than 5 fully agent-native marketing firms in the region.</li>
+      </ul>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="timeline-date">August 2024 — November 2025</div>
+      <div class="timeline-role">Business Analyst & AI Product Lead</div>
+      <div class="timeline-company">Eject Solutions Pvt Ltd · Full-time</div>
+      <ul class="timeline-bullets">
+        <li>Led CredoFolio — an AI product for automated portfolio generation — accelerating delivery by 80% within 3 months.</li>
+        <li>Generated 3,000+ qualified leads for PP Savani University, ranked #1 campaign of the fiscal year out of 6 active campaigns.</li>
+        <li>Cut developer clarification cycles from 5 days to 1 day per feature through structured requirement documentation.</li>
+      </ul>
+    </div>
+
+    <div class="timeline-item">
+      <div class="timeline-dot"></div>
+      <div class="timeline-date">March 2023 — March 2024</div>
+      <div class="timeline-role">Marketing Analytics Analyst</div>
+      <div class="timeline-company">INT360 Design Studio · Full-time</div>
+      <ul class="timeline-bullets">
+        <li>Built Python automation scripts that saved a team of 8 people 30% of manual outreach time weekly.</li>
+        <li>Reduced Cost Per Lead by 20% over 6 months across 15+ Meta campaigns — saving ~₹8L in annual ad waste.</li>
+        <li>Built 3 Power BI dashboards managing ₹50L+ in ad spend decisions across 10+ clients.</li>
+      </ul>
+    </div>
+
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section class="projects" id="projects">
+  <div class="section-label"><div class="section-label-line"></div><span>Projects</span></div>
+  <h2 class="section-title">What I've Built</h2>
+  <p class="section-subtitle">Production-grade AI systems and analytics products — each with a live demo.</p>
+  <div class="projects-grid reveal">
+
+    <a href="project-rag.html" class="project-card">
+      <div class="project-icon">📄</div>
+      <div class="project-num">01</div>
+      <div class="project-title">RAG Document Q&A Agent</div>
+      <div class="project-desc">Upload any PDF or document and ask questions in natural language. The agent retrieves the exact relevant sections and answers accurately — no hallucination.</div>
+      <div class="project-tags">
+        <span class="project-tag">LangChain</span>
+        <span class="project-tag">ChromaDB</span>
+        <span class="project-tag">OpenAI</span>
+        <span class="project-tag">Streamlit</span>
+      </div>
+      <div class="project-link">View Demo →</div>
+    </a>
+
+    <a href="project-agent.html" class="project-card">
+      <div class="project-icon">⚙️</div>
+      <div class="project-num">02</div>
+      <div class="project-title">Multi-Tool Autonomous Agent</div>
+      <div class="project-desc">Give the agent a complex task. It plans, selects the right tools — search, calculator, database — and executes each step autonomously until the goal is complete.</div>
+      <div class="project-tags">
+        <span class="project-tag">OpenAI API</span>
+        <span class="project-tag">Tool Use</span>
+        <span class="project-tag">ReAct</span>
+        <span class="project-tag">Python</span>
+      </div>
+      <div class="project-link">View Demo →</div>
+    </a>
+
+    <a href="project-data-agent.html" class="project-card">
+      <div class="project-icon">📈</div>
+      <div class="project-num">03</div>
+      <div class="project-title">Data Analysis Agent</div>
+      <div class="project-desc">Upload a CSV, ask a business question. The agent writes and executes Python code, analyses the data, generates charts, and produces a written report — fully automated.</div>
+      <div class="project-tags">
+        <span class="project-tag">Code Interpreter</span>
+        <span class="project-tag">Pandas</span>
+        <span class="project-tag">Matplotlib</span>
+        <span class="project-tag">GPT-4</span>
+      </div>
+      <div class="project-link">View Demo →</div>
+    </a>
+
+    <a href="project-langgraph.html" class="project-card">
+      <div class="project-icon">🔗</div>
+      <div class="project-num">04</div>
+      <div class="project-title">LangGraph Multi-Agent Pipeline</div>
+      <div class="project-desc">A content production system where specialized agents — researcher, editor, writer — collaborate in a defined workflow with human-in-the-loop approval gates.</div>
+      <div class="project-tags">
+        <span class="project-tag">LangGraph</span>
+        <span class="project-tag">Multi-Agent</span>
+        <span class="project-tag">Workflow</span>
+        <span class="project-tag">Python</span>
+      </div>
+      <div class="project-link">View Demo →</div>
+    </a>
+
+    <a href="project-ml.html" class="project-card">
+      <div class="project-icon">🔬</div>
+      <div class="project-num">05</div>
+      <div class="project-title">Diabetes Risk Prediction Engine</div>
+      <div class="project-desc">Published ML research. A classification model trained on 768 patient records achieving 82%+ accuracy, deployed as a live Streamlit web application for real-time risk forecasting.</div>
+      <div class="project-tags">
+        <span class="project-tag">scikit-learn</span>
+        <span class="project-tag">Streamlit</span>
+        <span class="project-tag">Published</span>
+        <span class="project-tag">Kaggle</span>
+      </div>
+      <div class="project-link">View Demo →</div>
+    </a>
+
+    <div class="project-card" style="background:var(--navy);border-color:var(--navy);cursor:default;">
+      <div style="color:rgba(255,255,255,0.3);font-size:0.75rem;font-weight:600;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:1rem;">Currently Building</div>
+      <div class="project-title" style="color:white;font-size:1.1rem;margin-bottom:0.75rem;">Campus Talent Platform</div>
+      <div class="project-desc" style="color:rgba(255,255,255,0.55);">EdTech platform managing student placement across 2 universities and 18+ corporate partners. Automated screening, routing, and CRM workflows.</div>
+      <div style="margin-top:auto;padding-top:1.5rem;font-size:0.75rem;color:var(--gold-light);font-weight:500;">In Progress — Aug 2025</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- PUBLICATIONS -->
+<section class="publications" id="publications">
+  <div class="section-label"><div class="section-label-line"></div><span>Research</span></div>
+  <h2 class="section-title">Published Work</h2>
+  <div class="pub-card reveal">
+    <div class="pub-year">2022</div>
+    <div>
+      <div class="pub-title">Diabetes Data Analysis and Machine Learning Based Prediction Model on Streamlit Web Application</div>
+      <div class="pub-desc">Peer-reviewed research covering feature selection, ensemble modeling, and real-time clinical risk prediction. Trained on 768 patient records, achieving 82%+ classification accuracy. Deployed as a live interactive web application.</div>
+    </div>
+    <div class="pub-badge">Peer Reviewed · Oct 2022</div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="contact" id="contact">
+  <div class="section-label" style="justify-content:center;"><div class="section-label-line"></div><span>Contact</span></div>
+  <h2 class="section-title" style="font-size:clamp(2rem,4vw,3.5rem);margin-bottom:0.5rem;">Let's Build Something<br><em style="font-family:'Cormorant Garamond',serif;font-style:italic;color:var(--gold-light);">That Matters</em></h2>
+  <p class="contact-sub">Available immediately. Open to full-time, contract, and consulting roles in Agentic AI and Data Science.</p>
+  <div class="contact-links">
+    <a href="mailto:adithyareddy639@gmail.com" class="contact-link"><span class="contact-link-icon">✉</span> adithyareddy639@gmail.com</a>
+    <a href="https://linkedin.com/in/adithya0607" class="contact-link" target="_blank"><span class="contact-link-icon">in</span> linkedin.com/in/adithya0607</a>
+    <a href="tel:+919059473960" class="contact-link"><span class="contact-link-icon">☎</span> +91 90594 73960</a>
+  </div>
+</section>
+
+<footer>© 2025 Adithya Reddy · aboutme.adithyareddy.online</footer>
+
+<script>
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(r => observer.observe(r));
+</script>
+</body>
+</html>
